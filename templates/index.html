@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marksheet Parser</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Marksheet Parser</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" multiple>
+            <button type="submit" value="Upload">Upload</button>
+        </form>
+        {% if upload_message %}
+            <p>{{ upload_message }}</p>
+        {% endif %}
+
+        <button id="triggerMain">Parse the Marksheets</button>
+        <div id="parsingMessage"></div>
+        <div id="timer"  style="display: none;"></div>
+        
+        
+        <a id="outputCsvLink" href="#" download></a>
+       
+        <!-- Add download link for output.csv -->
+       
+       <!-- <a id="outputCsvLink" href="http://127.0.0.1:5000//download_output" download>Download</a>-->
+        
+    </div>
+
+    <script>
+        document.getElementById("triggerMain").addEventListener("click", function() {
+            var xhr = new XMLHttpRequest();
+            var startTime = new Date().getTime();
+            var timer = setInterval(function() {
+                var currentTime = new Date().getTime();
+                var elapsedTime = currentTime - startTime;
+                var seconds = Math.floor(elapsedTime / 1000);
+                document.getElementById("timer").innerText = "Timer: " + seconds + " seconds";
+            }, 1000);
+           
+            //var Marksheetstype = "{{ Marksheetstype|tojson }}"; // Access Marksheetstype using Jinja templating
+            var Marksheetstype = "{{ Marksheetstype }}";
+            //console.log(Marksheetstype)
+            xhr.open("GET", "/run_main?Marksheetstype=" + Marksheetstype); // Pass Marksheetstype to the URL
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    clearInterval(timer);
+                    
+                    document.getElementById("outputCsvLink").setAttribute("href", "/download_output");
+                    document.getElementById("outputCsvLink").innerText ="Parsing completed click here download.";
+                    document.getElementById("outputCsvLink").style.display = "inline-block";
+                    document.getElementById("timer").style.display = "none";
+                }
+                
+            };
+            xhr.send();
+            document.getElementById("timer").style.display = "block";
+        });
+    </script>
